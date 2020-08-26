@@ -2,8 +2,7 @@ using DelimitedFiles, Random, Distributions, StatsBase, LightGraphs
 
 function Parameters(aid::Int64)
     ls_td = [(0.00005,0.0005),(0.0005,0.005),(0.005,0.05),(0.05,0.5),(0.1,1),(0.15,1.5),(0.2,2),(0.25,2.5),(0.3,3),(0.35,3.5),(0.4,4)];
-    #tplenv_ls = [("Complete","Lowest"),("Linear","Lowest"),("Linear","Mid"),("Linear","Highest"),("Grid","Lowest"),("Grid","Mid"),("Grid","Highest"),("ScaleFree","Lowest"),("ScaleFree","Mid"),("ScaleFree","Highest"),("SmallWorld","Lowest"),("SmallWorld","Mid"),("SmallWorld","Highest")];
-    tplenv_ls = [("Complete","Lowest"),("Linear","Lowest"),("Linear","Mid"),("Linear","Highest"),("Grid","Lowest"),("Grid","Mid"),("Grid","Highest"),("SmallWorld","Lowest"),("SmallWorld","Mid"),("SmallWorld","Highest"),("Tree","Lowest"),("Tree","Mid"),("Tree","Highest"),("Linear","globHighest")];
+    tplenv_ls = [("Complete","Lowest"),("Linear","Lowest"),("Linear","Mid"),("Linear","Highest"),("Grid","Lowest"),("Grid","Mid"),("Grid","Highest"),("SmallWorld","Lowest"),("SmallWorld","Mid"),("SmallWorld","Highest"),("Tree","Lowest"),("Tree","Mid"),("Tree","Highest")];
 
     A = collect(Iterators.product(tplenv_ls,ls_td));
 
@@ -55,23 +54,20 @@ end;
 function Update(Q,A,C,nu,Preg,n_com)
     #=
     <Variables>
-    Matrix Q (Qik): the fraction of sites occupied by species i in community k. Each site can take a single individual only. !! Different from relative species abundance
-    Column vector V (Vk):  the fraction of unoccupied sites in community k.
+    Matrix Q (Qik): the fraction of sites occupied by species i in community k.
     <Parameters>
-    Matrix A (alk): the dispersal rate from community l to k. diag(A) = 0.
-    Matrix C (cik): the per capita potential reproductive rate of species i in community k.
-    Matrix M (mik): the per capita mortality rate of species i in community k.
-    * By assuming the multinomial sampling with the probs, it's either the sampling is with replacement, or the new settlers' pool is infinite. The latter is the case here. (same assumption as the lottery system.)
+    Matrix A (alk): dispersal rate from community l to k. diag(A) = 0.
+    Matrix C (cik): per capita potential reproductive rate of species i in community k.
     =#
     S = transpose(sum(A,dims=2)); # row sum of the matrix A, transposed into a row vector
     I = ones(size(Q));
     Z = I - repeat(S,n_sp,1); # repeat() is to duplicate the row vector S and make a matrix
     if any(Z .< 0)
         Z[findall(x->abs(x)<10^(-10),Z)] .= 0;
-        if any(Z .< 0)
-            println("large negative value exists in Z");
-            return "NaN"
-        end
+        #if any(Z .< 0)
+        #    println("large negative value exists in Z");
+        #    return "NaN"
+        #end
     end
     q = (C.*Q) * A + (Z.*(C.*Q));
 
@@ -80,6 +76,7 @@ function Update(Q,A,C,nu,Preg,n_com)
 
     # Stochastic sampling of new settlers
     q = q ./ sum(q,dims=1);
+    # immigration process
     Vk = 1;
     if nu > 0
         Q .+= nu/n_sp; # Adding immigrants. sum_i(nu/n_sp) = nu. nu is fraction of immigrants per local community.
@@ -95,19 +92,19 @@ function calcDiff(Q,prevQ)
 end;
 
 # parameter and directory setting
-h = ARGS[2];
+h = ARGS[2];    # width of fitness distribution
 maxtime = 1000000;
-n_sp = 20;
-n_com = 100;
-nu = 0;
-aid = parse(Int64,ARGS[1]);
+n_sp = 20;      # total number of species
+n_com = 100;    # the number of local communities
+nu = 0;         # immigration rate
+aid = parse(Int64,ARGS[1]); # for parallel computing with different parameters from Parameters(aid).
 topology,autocorr,td,w_adjust = Parameters(aid);
 
 # output directly specification and file name settings
 cd(string("path-to-directory-for-output"));
-filename = string("input-file-name"); # su
-envFile = string("../N100",topology,"_",autocorr);
-name = split(envFile,'/')[end];
+filename = string("connectivity-file-name"); # e.g. Complete_undir
+envFile = string("environmental-condition-file-name"); # e.g. Complete_Lowest
+name = envFile;
 
 pinit = 1 ./ n_sp;
 
