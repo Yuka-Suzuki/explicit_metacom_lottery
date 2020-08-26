@@ -123,17 +123,7 @@ g = 0;
 while g < maxtime
     global prevQ = deepcopy(Q); # update the prevQ using the previous Q
     global Q = Update(Q,A,C,nu,Preg,n_com); # new Q
-    if Q == "NaN"
-        alpha,beta,gamma = "NaN","NaN","NaN";
-        append!(adiv,alpha);
-        append!(bdiv,beta);
-        append!(gdiv,gamma);
-        break;
-    end;
-    alpha,beta,gamma = Diversity(Q,n_com);
-    append!(adiv,alpha);
-    append!(bdiv,beta);
-    append!(gdiv,gamma);
+
     diff = calcDiff(Q,prevQ);
     append!(Qdiff,diff);
     append!(biomass,sum(Q));
@@ -145,9 +135,6 @@ end
 if g == maxtime
     println("runtime error")
 end
-writedlm(string("alpha",name,".txt"),adiv,' ');
-writedlm(string("beta",name,".txt"),bdiv,' ');
-writedlm(string("gamma",name,".txt"),gdiv,' ');
 writedlm(string("Q_",name,".txt"),Q,' ');
 writedlm(string("C_",name,".txt"),C,' ');
 writedlm(string("Qdiff_",name,".txt"),Qdiff,' ');
