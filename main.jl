@@ -1,7 +1,6 @@
 using DelimitedFiles, Random, Distributions, StatsBase, LightGraphs
 
 function Parameters(aid::Int64)
-    #aid: SLURM ARRAY ID
     ls_td = [(0.00005,0.0005),(0.0005,0.005),(0.005,0.05),(0.05,0.5),(0.1,1),(0.15,1.5),(0.2,2),(0.25,2.5),(0.3,3),(0.35,3.5),(0.4,4)];
     #tplenv_ls = [("Complete","Lowest"),("Linear","Lowest"),("Linear","Mid"),("Linear","Highest"),("Grid","Lowest"),("Grid","Mid"),("Grid","Highest"),("ScaleFree","Lowest"),("ScaleFree","Mid"),("ScaleFree","Highest"),("SmallWorld","Lowest"),("SmallWorld","Mid"),("SmallWorld","Highest")];
     tplenv_ls = [("Complete","Lowest"),("Linear","Lowest"),("Linear","Mid"),("Linear","Highest"),("Grid","Lowest"),("Grid","Mid"),("Grid","Highest"),("SmallWorld","Lowest"),("SmallWorld","Mid"),("SmallWorld","Highest"),("Tree","Lowest"),("Tree","Mid"),("Tree","Highest"),("Linear","globHighest")];
@@ -105,16 +104,8 @@ aid = parse(Int64,ARGS[1]);
 topology,autocorr,td,w_adjust = Parameters(aid);
 
 # output directly specification and file name settings
-cd(string("/Users/yukasuzuki/Documents/MLmodel_run/N100flexC_autocor_nu0/h",h,"/",topology));
-dir = string("td",td,"SRS");
-try
-    mkdir(dir);
-    cd(dir);
-catch
-    cd(dir);
-end;
-println("DirectoryName: h",h,"/",topology,"/td",td,autocorr);
-filename = string("../",topology,"_undir");
+cd(string("path-to-directory-for-output"));
+filename = string("input-file-name"); # su
 envFile = string("../N100",topology,"_",autocorr);
 name = split(envFile,'/')[end];
 
